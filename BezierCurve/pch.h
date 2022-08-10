@@ -10,4 +10,7 @@
 // add headers that you want to pre-compile here
 #include "framework.h"
 
+#define INT_TO_FLOAT(X) static_cast<float>(X)
+#define FLOAT_TO_INT(X) static_cast<int>(X)
+
 #endif //PCH_H

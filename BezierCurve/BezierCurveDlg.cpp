@@ -7,7 +7,8 @@
 #include "BezierCurve.h"
 #include "BezierCurveDlg.h"
 #include "afxdialogex.h"
-#include "BezierCurveControl.h"
+#include "SpeedCurveCtrl.h"
+//#include "BezierCurveControl.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -28,6 +29,10 @@ CBezierCurveDlg::CBezierCurveDlg(CWnd* pParent /*=nullptr*/)
 
 void CBezierCurveDlg::DoDataExchange(CDataExchange* pDX)
 {
+	DDX_Control(pDX, IDC_BUTTON_RESET, m_btnReset);
+	DDX_Control(pDX, IDC_BUTTON_REMOVE, m_btnRemove);
+	DDX_Control(pDX, IDC_BUTTON_ADD, m_btnAdd);
+
 	CDialogEx::DoDataExchange(pDX);
 }
 
@@ -35,6 +40,9 @@ BEGIN_MESSAGE_MAP(CBezierCurveDlg, CDialogEx)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
 	ON_WM_SIZE()
+	ON_BN_CLICKED(IDC_BUTTON_RESET, OnBnClickedButtonReset)
+	ON_BN_CLICKED(IDC_BUTTON_REMOVE, OnBnClickedButtonRemove)
+	ON_BN_CLICKED(IDC_BUTTON_ADD, OnBnClickedButtonAdd)
 END_MESSAGE_MAP()
 
 
@@ -52,7 +60,7 @@ BOOL CBezierCurveDlg::OnInitDialog()
 	// TODO: Add extra initialization here
 	if (m_pBezierCurveControl == nullptr)
 	{
-		m_pBezierCurveControl = new CBezierCurveControl();
+		m_pBezierCurveControl = new CSpeedCurveCtrl()/*new CBezierCurveControl()*/;
 
 		m_pBezierCurveControl->Create(_T("BezierCurve"), NULL, WS_CHILD | WS_VISIBLE, CRect(0, 0, 0, 0), this, IDC_WND_BEZIER_CURVE);
 	}
@@ -111,7 +119,35 @@ void CBezierCurveDlg::OnSize(UINT nType, int cx, int cy)
 
 	rcClient.DeflateRect(20, 20);
 
+	CRect rcButton;
+	rcButton.left = rcClient.left;
+	rcButton.right = rcButton.left + 60;
+	rcButton.bottom = rcClient.bottom;
+	rcButton.top = rcButton.bottom - 30;
+	m_btnReset.MoveWindow(rcButton);
+
+	rcButton.right = rcClient.right;
+	rcButton.left = rcButton.right - 60;
+	m_btnRemove.MoveWindow(rcButton);
+
+	rcButton.right = rcButton.left - 20;
+	rcButton.left = rcButton.right - 60;
+	m_btnAdd.MoveWindow(rcButton);
+
 	CRect rcCurveWindow;
 	rcCurveWindow = rcClient;
+	rcCurveWindow.bottom = rcButton.top - 20;
 	m_pBezierCurveControl->MoveWindow(rcCurveWindow);
+}
+
+void CBezierCurveDlg::OnBnClickedButtonReset()
+{
+}
+
+void CBezierCurveDlg::OnBnClickedButtonAdd()
+{
+}
+
+void CBezierCurveDlg::OnBnClickedButtonRemove()
+{
 }

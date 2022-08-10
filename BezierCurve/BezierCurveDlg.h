@@ -4,8 +4,11 @@
 
 #pragma once
 
-class CBezierCurveControl;
+//class CBezierCurveControl;
 // CBezierCurveDlg dialog
+
+class CSpeedCurveCtrl;
+
 class CBezierCurveDlg : public CDialogEx
 {
 // Construction
@@ -32,6 +35,15 @@ protected:
 	afx_msg void OnSize(UINT nType, int cx, int cy);
 	DECLARE_MESSAGE_MAP()
 
+	afx_msg void OnBnClickedButtonReset();
+
+	afx_msg void OnBnClickedButtonAdd();
+	afx_msg void OnBnClickedButtonRemove();
+
 private:
-	CBezierCurveControl* m_pBezierCurveControl;
+	CSpeedCurveCtrl* m_pBezierCurveControl;
+
+	CButton m_btnReset;
+	CButton m_btnAdd;
+	CButton m_btnRemove;
 };
