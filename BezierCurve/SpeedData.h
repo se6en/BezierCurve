@@ -23,6 +23,8 @@ public:
 
    void MoveDataItem(CPoint point, CRect rcClient);
 
+   BOOL IsAllowToAddItem(float fTimePercent, CRect rcClient);
+
    void AddItem(float fTimePercent, float fSpeedValue);
 
    HRESULT CreateSpeedCurveGeometry(ID2D1GeometrySink* pSink, CRect rcClient);
@@ -33,6 +35,7 @@ public:
    HRESULT CreateVirtualBaseGeometry(ID2D1GeometrySink* pSink);
    HRESULT CreateVirtualCurrentGeometry(ID2D1GeometrySink* pSink);
    float GetCurrentDuration(Microsoft::WRL::ComPtr<ID2D1Factory1> pD2DFactory);
+   float CalculateDecodeTime(Microsoft::WRL::ComPtr<ID2D1Factory1> pD2DFactory, float fPercent);
 
 private:
    float PercentToXValue(float const& fPercent, CRect rcClient);

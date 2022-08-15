@@ -142,6 +142,7 @@ void CBezierCurveDlg::OnSize(UINT nType, int cx, int cy)
 
 void CBezierCurveDlg::OnBnClickedButtonReset()
 {
+	m_pBezierCurveControl->ResetSpeedData();
 }
 
 void CBezierCurveDlg::OnBnClickedButtonAdd()

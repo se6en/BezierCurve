@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "BezierData.h"
 #include "BezierCurveControl.h"
+#include "SpecializedSink.h"
 
 IMPLEMENT_DYNAMIC(CBezierCurveControl, CWnd)
 

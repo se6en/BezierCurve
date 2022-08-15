@@ -121,7 +121,7 @@ void CSpeedCurveCtrl::DrawDurationArea()
    // current seek value
    ComPtr<IDWriteTextLayout> pSeekTextLayout = nullptr;
    CString strSeek = SEEK_TITLE;
-   float fSeek = fCurrentDuration * m_fLButtonDownPercentValue;
+   float fSeek = m_pData->CalculateDecodeTime(m_pD2DFactory, m_fLButtonDownPercentValue);/*fCurrentDuration * m_fLButtonDownPercentValue;*/
    CString strSeekValue;
    strSeekValue.Format(_T("%.2f"), fSeek);
    strSeek += strSeekValue;
@@ -819,4 +819,18 @@ CRect CSpeedCurveCtrl::GetSpeedCurveRect()
    rcClient.top += DURATION_AREA_HEIGHT;
 
    return rcClient;
+}
+
+void CSpeedCurveCtrl::ResetSpeedData()
+{
+   ASSERT(m_pData != nullptr);
+
+   m_pData->Init(m_fDuration);
+
+   Invalidate();
+   UpdateWindow();
+}
+
+void CSpeedCurveCtrl::AddSpeedDataItem()
+{
 }
