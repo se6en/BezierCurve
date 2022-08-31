@@ -17,7 +17,7 @@
 
 // CBezierCurveDlg dialog
 
-
+#define IDT_PLAY_TIMER                1
 
 CBezierCurveDlg::CBezierCurveDlg(CWnd* pParent /*=nullptr*/)
 	: CDialogEx(IDD_BEZIERCURVE_DIALOG, pParent)
@@ -30,6 +30,8 @@ CBezierCurveDlg::CBezierCurveDlg(CWnd* pParent /*=nullptr*/)
 void CBezierCurveDlg::DoDataExchange(CDataExchange* pDX)
 {
 	DDX_Control(pDX, IDC_BUTTON_RESET, m_btnReset);
+	DDX_Control(pDX, IDC_BUTTON_PLAY, m_btnPlay);
+	DDX_Control(pDX, IDC_BUTTON_PAUSE, m_btnPause);
 	DDX_Control(pDX, IDC_BUTTON_REMOVE, m_btnRemove);
 	DDX_Control(pDX, IDC_BUTTON_ADD, m_btnAdd);
 
@@ -40,7 +42,10 @@ BEGIN_MESSAGE_MAP(CBezierCurveDlg, CDialogEx)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
 	ON_WM_SIZE()
+	ON_WM_TIMER()
 	ON_BN_CLICKED(IDC_BUTTON_RESET, OnBnClickedButtonReset)
+	ON_BN_CLICKED(IDC_BUTTON_PLAY, OnBnClickedButtonPlay)
+	ON_BN_CLICKED(IDC_BUTTON_PAUSE, OnBnClickedButtonPause)
 	ON_BN_CLICKED(IDC_BUTTON_REMOVE, OnBnClickedButtonRemove)
 	ON_BN_CLICKED(IDC_BUTTON_ADD, OnBnClickedButtonAdd)
 END_MESSAGE_MAP()
@@ -64,6 +69,8 @@ BOOL CBezierCurveDlg::OnInitDialog()
 
 		m_pBezierCurveControl->Create(_T("BezierCurve"), NULL, WS_CHILD | WS_VISIBLE, CRect(0, 0, 0, 0), this, IDC_WND_BEZIER_CURVE);
 	}
+
+	m_btnPause.EnableWindow(FALSE);
 
 	MoveWindow(CRect(0, 0, 1000, 600));
 	CenterWindow();
@@ -126,6 +133,14 @@ void CBezierCurveDlg::OnSize(UINT nType, int cx, int cy)
 	rcButton.top = rcButton.bottom - 30;
 	m_btnReset.MoveWindow(rcButton);
 
+	rcButton.left = rcButton.right + 20;
+	rcButton.right = rcButton.left + 60;
+	m_btnPlay.MoveWindow(rcButton);
+
+	rcButton.left = rcButton.right + 20;
+	rcButton.right = rcButton.left + 60;
+	m_btnPause.MoveWindow(rcButton);
+
 	rcButton.right = rcClient.right;
 	rcButton.left = rcButton.right - 60;
 	m_btnRemove.MoveWindow(rcButton);
@@ -140,9 +155,37 @@ void CBezierCurveDlg::OnSize(UINT nType, int cx, int cy)
 	m_pBezierCurveControl->MoveWindow(rcCurveWindow);
 }
 
+void CBezierCurveDlg::OnTimer(UINT_PTR nIDEvent)
+{
+	if (nIDEvent == IDT_PLAY_TIMER)
+	{
+		DOUBLE dElapsedTime = (double)(clock() - m_clockStart) / (double)(CLOCKS_PER_SEC);
+
+		m_pBezierCurveControl->SetPlayTime(dElapsedTime);
+	}
+}
+
 void CBezierCurveDlg::OnBnClickedButtonReset()
 {
 	m_pBezierCurveControl->ResetSpeedData();
+}
+
+void CBezierCurveDlg::OnBnClickedButtonPlay()
+{
+	m_clockStart = clock();
+
+	SetTimer(IDT_PLAY_TIMER, 30, NULL);
+
+	m_btnPlay.EnableWindow(FALSE);
+	m_btnPause.EnableWindow(TRUE);
+}
+
+void CBezierCurveDlg::OnBnClickedButtonPause()
+{
+	KillTimer(IDT_PLAY_TIMER);
+
+	m_btnPause.EnableWindow(FALSE);
+	m_btnPlay.EnableWindow(TRUE);
 }
 
 void CBezierCurveDlg::OnBnClickedButtonAdd()

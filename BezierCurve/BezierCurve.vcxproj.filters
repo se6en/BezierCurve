@@ -45,10 +45,10 @@
     <ClInclude Include="SpeedCurveCtrl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SpeedData.h">
+    <ClInclude Include="SpeedDataController.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SpeedDataItem.h">
+    <ClInclude Include="SpeedDataItemList.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SpecializedSink.h">
@@ -77,10 +77,10 @@
     <ClCompile Include="SpeedCurveCtrl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SpeedData.cpp">
+    <ClCompile Include="SpeedDataController.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SpeedDataItem.cpp">
+    <ClCompile Include="SpeedDataItemList.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SpecializedSink.cpp">

@@ -33,9 +33,12 @@ protected:
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
 	afx_msg void OnSize(UINT nType, int cx, int cy);
+	afx_msg void OnTimer(UINT_PTR nIDEvent);
 	DECLARE_MESSAGE_MAP()
 
 	afx_msg void OnBnClickedButtonReset();
+	afx_msg void OnBnClickedButtonPlay();
+	afx_msg void OnBnClickedButtonPause();
 
 	afx_msg void OnBnClickedButtonAdd();
 	afx_msg void OnBnClickedButtonRemove();
@@ -44,6 +47,11 @@ private:
 	CSpeedCurveCtrl* m_pBezierCurveControl;
 
 	CButton m_btnReset;
+	CButton m_btnPlay;
+	CButton m_btnPause;
+
 	CButton m_btnAdd;
 	CButton m_btnRemove;
+
+	clock_t m_clockStart;
 };

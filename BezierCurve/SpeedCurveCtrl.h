@@ -1,9 +1,6 @@
 #pragma once
-#pragma once
 
 using namespace Microsoft::WRL;
-
-class CSpeedData;
 
 class CSpeedCurveCtrl : public CWnd
 {
@@ -15,6 +12,8 @@ public:
 
    void ResetSpeedData();
    void AddSpeedDataItem();
+
+   void SetPlayTime(double dTime);
 
    afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
    afx_msg void OnSize(UINT nType, int cx, int cy);
@@ -46,9 +45,23 @@ private:
 
    void DrawCurrentTimeLine();
 
+   void DrawElementAreaBackground();
+   void DrawElementCurvePoint();
+   void DrawElementTimeLine();
+
+   void DrawElementArea();
+
    float CalculateTimePercent(int nPosition);
 
+   void UpdateSeekPercentValue(int nXValue);
+
+   void UpdateElementPercentValue(int nXValue);
+   void SetElementPercentValue(float fValue);
+
+   D2D1_RECT_F RectToFloatRect(CRect rcRect);
+
    CRect GetSpeedCurveRect();
+   CRect GetElementRect();
 
    float m_fDuration;
 
@@ -65,13 +78,14 @@ private:
    ComPtr<ID2D1SolidColorBrush>        m_pRedBrush;
    ComPtr<ID2D1SolidColorBrush>        m_pGreenBrush;
    ComPtr<ID2D1SolidColorBrush>        m_pBlueBrush;
+   ComPtr<ID2D1SolidColorBrush>        m_pGrayBrush;
 
    ComPtr<ID2D1SolidColorBrush>        m_pDurationAreaSeparatorBrush;
    ComPtr<ID2D1SolidColorBrush>        m_pCurveAreaSeparatorBrush;
    ComPtr<ID2D1SolidColorBrush>        m_pCurveBaseLineSeparatorBrush;
 
-   BOOL m_bLButtonDown;
-   float m_fLButtonDownPercentValue;
-
-   CSpeedData* m_pData;
+   BOOL m_bLButtonDownOnCurveArea;
+   BOOL m_bLButtonDownOnElementArea;
+   float m_fSeekPercentValue;
+   float m_fElementPercentValue;
 };

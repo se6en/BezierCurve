@@ -8,6 +8,8 @@
 #define IDC_BUTTON_RESET                1002
 #define IDC_BUTTON_REMOVE               1003
 #define IDC_BUTTON_ADD                  1004
+#define IDC_BUTTON_PLAY                 1005
+#define IDC_BUTTON_PAUSE                1006
 
 // Next default values for new objects
 // 

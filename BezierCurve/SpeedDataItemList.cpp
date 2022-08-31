@@ -1,14 +1,15 @@
 #include "pch.h"
-#include "SpeedDataItem.h"
+#include "SpeedDataItemList.h"
 
 CSpeedDataItem::CSpeedDataItem()
 {
 
 }
 
-CSpeedDataItem::CSpeedDataItem(float fTimePercent, float fLeftValue, float fRightValue)
+CSpeedDataItem::CSpeedDataItem(float fTimePercent, float fElementPercent, float fLeftValue, float fRightValue)
 {
-   m_fTimePercentValue = fTimePercent;
+   m_fTimePercentValue = fTimePercent;   // time percent according to the original duration
+   m_fElementPercentValue = fElementPercent;
    m_fLeftSpeedValue = fLeftValue;
    m_fRightSpeedValue = fRightValue;
 }
@@ -88,24 +89,34 @@ BOOL CSpeedDataItem::IsRightItemSelect()
    return m_bRightSelect;
 }
 
-CSpeedDataItemController::CSpeedDataItemController()
+void CSpeedDataItem::SetElementPercentValue(float fPercent)
+{
+   m_fElementPercentValue = fPercent;
+}
+
+float CSpeedDataItem::GetElementPercentValue()
+{
+   return m_fElementPercentValue;
+}
+
+CSpeedDataItemList::CSpeedDataItemList()
    : m_pFirstItem(nullptr),
    m_pLastItem(nullptr),
    m_nItemCount(0)
 {
 }
 
-CSpeedDataItemController::~CSpeedDataItemController()
+CSpeedDataItemList::~CSpeedDataItemList()
 {
    RemoveAll();
 }
 
-int CSpeedDataItemController::GetItemCount()
+int CSpeedDataItemList::GetItemCount()
 {
    return m_nItemCount;
 }
 
-void CSpeedDataItemController::AddItem(CSpeedDataItem* pItem, CSpeedDataItem* pPrevItem)
+void CSpeedDataItemList::AddItem(CSpeedDataItem* pItem, CSpeedDataItem* pPrevItem)
 {
    if (pItem == nullptr)
    {
@@ -143,7 +154,7 @@ void CSpeedDataItemController::AddItem(CSpeedDataItem* pItem, CSpeedDataItem* pP
    ++m_nItemCount;
 }
 
-void CSpeedDataItemController::AddItemBefore(CSpeedDataItem* pItem, CSpeedDataItem* pNextItem)
+void CSpeedDataItemList::AddItemBefore(CSpeedDataItem* pItem, CSpeedDataItem* pNextItem)
 {
    if (pItem == nullptr)
    {
@@ -184,7 +195,7 @@ void CSpeedDataItemController::AddItemBefore(CSpeedDataItem* pItem, CSpeedDataIt
    ++m_nItemCount;
 }
 
-void CSpeedDataItemController::RemoveItem(CSpeedDataItem* pItem)
+void CSpeedDataItemList::RemoveItem(CSpeedDataItem* pItem)
 {
    if (pItem == nullptr)
    {
@@ -216,7 +227,7 @@ void CSpeedDataItemController::RemoveItem(CSpeedDataItem* pItem)
    delete pItem;
 }
 
-void CSpeedDataItemController::RemoveAll()
+void CSpeedDataItemList::RemoveAll()
 {
    for (CSpeedDataItem* pItem = m_pFirstItem; pItem != nullptr;)
    {
@@ -231,22 +242,22 @@ void CSpeedDataItemController::RemoveAll()
    m_pLastItem = nullptr;
 }
 
-CSpeedDataItem* CSpeedDataItemController::GetFistItem() const
+CSpeedDataItem* CSpeedDataItemList::GetFistItem() const
 {
    return m_pFirstItem;
 }
 
-CSpeedDataItem* CSpeedDataItemController::GetLastItem() const
+CSpeedDataItem* CSpeedDataItemList::GetLastItem() const
 {
    return m_pLastItem;
 }
 
-POSITION CSpeedDataItemController::GetHeadPosition() const
+POSITION CSpeedDataItemList::GetHeadPosition() const
 {
    return (POSITION)m_pFirstItem;
 }
 
-CSpeedDataItem* CSpeedDataItemController::GetNextItem(POSITION& position) const
+CSpeedDataItem* CSpeedDataItemList::GetNextItem(POSITION& position) const
 {
    CSpeedDataItem* pItem = (CSpeedDataItem*)position;
 

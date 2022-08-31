@@ -4,7 +4,7 @@ class CSpeedDataItem
 {
 public:
    CSpeedDataItem();
-   CSpeedDataItem(float fTimePercent, float fLeftValue, float fRightValue);
+   CSpeedDataItem(float fTimePercent, float fElementPercent, float fLeftValue, float fRightValue);
    virtual ~CSpeedDataItem();
 
    void SetTimePercentValue(float fTimePercent);
@@ -28,6 +28,9 @@ public:
    void SelectRightItem(BOOL bSelect);
    BOOL IsRightItemSelect();
 
+   void SetElementPercentValue(float fPercent);
+   float GetElementPercentValue();
+
 private:
    BOOL m_bLeftSelect;
    BOOL m_bRightSelect;
@@ -36,16 +39,17 @@ private:
    CSpeedDataItem* m_pNextItem;
 
    float m_fTimePercentValue = 0.f;
+   float m_fElementPercentValue = 0.f;
 
    float m_fLeftSpeedValue = 1.f;
    float m_fRightSpeedValue = 1.f;
 };
 
-class CSpeedDataItemController
+class CSpeedDataItemList
 {
 public:
-   CSpeedDataItemController();
-   virtual ~CSpeedDataItemController();
+   CSpeedDataItemList();
+   virtual ~CSpeedDataItemList();
 
    int GetItemCount();
 

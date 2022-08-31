@@ -194,8 +194,8 @@
     <ClInclude Include="Resource.h" />
     <ClInclude Include="SpecializedSink.h" />
     <ClInclude Include="SpeedCurveCtrl.h" />
-    <ClInclude Include="SpeedData.h" />
-    <ClInclude Include="SpeedDataItem.h" />
+    <ClInclude Include="SpeedDataController.h" />
+    <ClInclude Include="SpeedDataItemList.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
@@ -212,8 +212,8 @@
     </ClCompile>
     <ClCompile Include="SpecializedSink.cpp" />
     <ClCompile Include="SpeedCurveCtrl.cpp" />
-    <ClCompile Include="SpeedData.cpp" />
-    <ClCompile Include="SpeedDataItem.cpp" />
+    <ClCompile Include="SpeedDataController.cpp" />
+    <ClCompile Include="SpeedDataItemList.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="BezierCurve.rc" />

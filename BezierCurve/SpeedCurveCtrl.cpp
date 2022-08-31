@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "SpeedData.h"
+#include "SpeedDataController.h"
 #include "SpeedCurveCtrl.h"
 
 static constexpr auto DURATION_AREA_HEIGHT = 50;
@@ -11,6 +11,7 @@ static constexpr auto DURATION_ORIGINAL = _T("Original Duration : 90s");
 static constexpr auto DURATION_VALUE = 90.0f;
 static constexpr auto DURATION_CURRENT_TITLE = _T("Current Duration : ");
 
+static constexpr auto DECODE_TITLE = _T("Decode : ");
 static constexpr auto SEEK_TITLE = _T("Seek : ");
 
 static constexpr auto SPEED_MULTIPLE_MAX_VALUE_STRING = _T("10x");
@@ -31,12 +32,14 @@ CSpeedCurveCtrl::CSpeedCurveCtrl()
    m_pRedBrush(nullptr),
    m_pGreenBrush(nullptr),
    m_pBlueBrush(nullptr),
+   m_pGrayBrush(nullptr),
    m_fDuration(DURATION_VALUE),
-   m_bLButtonDown(FALSE),
-   m_fLButtonDownPercentValue(1.f)
+   m_bLButtonDownOnCurveArea(FALSE),
+   m_bLButtonDownOnElementArea(FALSE),
+   m_fSeekPercentValue(1.f),
+   m_fElementPercentValue(1.f)
 {
-   m_pData = new CSpeedData();
-   m_pData->Init(m_fDuration);
+   CSpeedDataController::GetInstance().Init(m_fDuration);
 }
 
 CSpeedCurveCtrl::~CSpeedCurveCtrl()
@@ -116,20 +119,30 @@ void CSpeedCurveCtrl::DrawDurationArea()
    m_pD2DContext->DrawTextLayout(D2D1::Point2F(INT_TO_FLOAT(rcText.left), INT_TO_FLOAT(rcText.top)/* - textMetrics.height + textMetrics.layoutHeight*/),
       pOriginalDurationTextLayout.Get(), m_pGreenBrush.Get());
 
-   float fCurrentDuration = m_pData->GetCurrentDuration(m_pD2DFactory);
-
    // current seek value
    ComPtr<IDWriteTextLayout> pSeekTextLayout = nullptr;
+   CString strCurrentInfo;
+
+   CString strDecode = DECODE_TITLE;
+   float fDecode = CSpeedDataController::GetInstance().CalculateDecodeTime(m_pD2DFactory, m_fSeekPercentValue);/*fCurrentDuration * m_fLButtonDownPercentValue;*/
+   CString strDecodeValue;
+   strDecodeValue.Format(_T("%.2f"), fDecode);
+   strDecode += strDecodeValue;
+   strDecode += _T("s");
+
    CString strSeek = SEEK_TITLE;
-   float fSeek = m_pData->CalculateDecodeTime(m_pD2DFactory, m_fLButtonDownPercentValue);/*fCurrentDuration * m_fLButtonDownPercentValue;*/
+   float fSeek = CSpeedDataController::GetInstance().GetSeekTime(m_pD2DFactory, m_fElementPercentValue);
    CString strSeekValue;
    strSeekValue.Format(_T("%.2f"), fSeek);
    strSeek += strSeekValue;
    strSeek += _T("s");
 
+   strCurrentInfo = strDecode + _T("/");
+   strCurrentInfo += strSeek;
+
    hr = m_pD2DWriteFactory->CreateTextLayout(
-      strSeek,
-      strSeek.GetLength(),
+      strCurrentInfo,
+      strCurrentInfo.GetLength(),
       m_pD2DTextFormat.Get(),
       (FLOAT)(rcText.Width()),
       (FLOAT)rcText.Height(),
@@ -154,6 +167,7 @@ void CSpeedCurveCtrl::DrawDurationArea()
    ComPtr<IDWriteTextLayout> pCurrentDurationTextLayout = nullptr;
    CString strCurrentDuration = DURATION_CURRENT_TITLE;
 
+   float fCurrentDuration = CSpeedDataController::GetInstance().GetCurrentDuration();
    CString strDurationValue;
    strDurationValue.Format(_T("%.2f"), fCurrentDuration);
 
@@ -300,11 +314,6 @@ void CSpeedCurveCtrl::DrawVerticalSeparator()
 
 void CSpeedCurveCtrl::DrawSpeedCurve()
 {
-   if (m_pData == nullptr)
-   {
-      return;
-   }
-
    ComPtr<ID2D1PathGeometry> pGeometry = nullptr;
    HRESULT hr = m_pD2DFactory->CreatePathGeometry(&pGeometry);
    if (FAILED(hr))
@@ -319,7 +328,7 @@ void CSpeedCurveCtrl::DrawSpeedCurve()
       return;
    }
 
-   if (FAILED(m_pData->CreateSpeedCurveGeometry(pSink, GetSpeedCurveRect())))
+   if (FAILED(CSpeedDataController::GetInstance().CreateSpeedCurveGeometry(pSink, GetSpeedCurveRect())))
    {
       return;
    }
@@ -330,11 +339,6 @@ void CSpeedCurveCtrl::DrawSpeedCurve()
 
 void CSpeedCurveCtrl::DrawSpeedCurveLines()
 {
-   if (m_pData == nullptr)
-   {
-      return;
-   }
-
    ComPtr<ID2D1PathGeometry> pGeometry = nullptr;
    HRESULT hr = m_pD2DFactory->CreatePathGeometry(&pGeometry);
    if (FAILED(hr))
@@ -349,7 +353,7 @@ void CSpeedCurveCtrl::DrawSpeedCurveLines()
       return;
    }
 
-   if (FAILED(m_pData->CreateSpeedCurvePointLineGeometry(pSink, GetSpeedCurveRect())))
+   if (FAILED(CSpeedDataController::GetInstance().CreateSpeedCurvePointLineGeometry(pSink, GetSpeedCurveRect())))
    {
       return;
    }
@@ -371,11 +375,6 @@ void CSpeedCurveCtrl::DrawSpeedCurveLines()
 
 void CSpeedCurveCtrl::DrawSpeedCurvePoint()
 {
-   if (m_pData == nullptr)
-   {
-      return;
-   }
-
    ComPtr<ID2D1PathGeometry> pGeometry = nullptr;
    HRESULT hr = m_pD2DFactory->CreatePathGeometry(&pGeometry);
    if (FAILED(hr))
@@ -390,7 +389,7 @@ void CSpeedCurveCtrl::DrawSpeedCurvePoint()
       return;
    }
 
-   if (FAILED(m_pData->CreateSpeedDataPointGeometry(pSink, GetSpeedCurveRect())))
+   if (FAILED(CSpeedDataController::GetInstance().CreateSpeedDataPointGeometry(pSink, GetSpeedCurveRect())))
    {
       return;
    }
@@ -400,11 +399,6 @@ void CSpeedCurveCtrl::DrawSpeedCurvePoint()
 
 void CSpeedCurveCtrl::DrawSpeedCurveSelectPoint()
 {
-   if (m_pData == nullptr)
-   {
-      return;
-   }
-
    ComPtr<ID2D1PathGeometry> pGeometry = nullptr;
    HRESULT hr = m_pD2DFactory->CreatePathGeometry(&pGeometry);
    if (FAILED(hr))
@@ -419,7 +413,7 @@ void CSpeedCurveCtrl::DrawSpeedCurveSelectPoint()
       return;
    }
 
-   if (FAILED(m_pData->CreateSpeedDataSelectPointGeometry(pSink, GetSpeedCurveRect())))
+   if (FAILED(CSpeedDataController::GetInstance().CreateSpeedDataSelectPointGeometry(pSink, GetSpeedCurveRect())))
    {
       return;
    }
@@ -435,12 +429,62 @@ void CSpeedCurveCtrl::DrawCurrentTimeLine()
 
    int nSectionHeight = rcClient.Height() / 5;
    
-   float fHorizontalValue = static_cast<float>(rcClient.Width()) * m_fLButtonDownPercentValue;
+   float fHorizontalValue = static_cast<float>(rcClient.Width()) * m_fSeekPercentValue;
 
    D2D1_POINT_2F ptStart = D2D1::Point2F(fHorizontalValue, INT_TO_FLOAT(rcClient.top));
    D2D1_POINT_2F ptEnd = D2D1::Point2F(fHorizontalValue, INT_TO_FLOAT(rcClient.bottom - nSectionHeight));
 
    m_pD2DContext->DrawLine(ptStart, ptEnd, m_pRedBrush.Get(), LBUTTONDOWN_LINE_WIDTH);
+}
+
+void CSpeedCurveCtrl::DrawElementAreaBackground()
+{
+   CRect rcElement = GetElementRect();
+
+   m_pD2DContext->FillRectangle(RectToFloatRect(rcElement), m_pGrayBrush.Get());
+}
+
+void CSpeedCurveCtrl::DrawElementCurvePoint()
+{
+   ComPtr<ID2D1PathGeometry> pGeometry = nullptr;
+   HRESULT hr = m_pD2DFactory->CreatePathGeometry(&pGeometry);
+   if (FAILED(hr))
+   {
+      return;
+   }
+
+   ID2D1GeometrySink* pSink = nullptr;
+   hr = pGeometry->Open(&pSink);
+   if (FAILED(hr))
+   {
+      return;
+   }
+
+   if (FAILED(CSpeedDataController::GetInstance().CreateElementSpeedDataPointGeometry(pSink, GetElementRect())))
+   {
+      return;
+   }
+
+   m_pD2DContext->FillGeometry(pGeometry.Get(), m_pWhiteBrush.Get());
+}
+
+void CSpeedCurveCtrl::DrawElementTimeLine()
+{
+   D2D1_RECT_F rcElement = RectToFloatRect(GetElementRect());
+
+   float fHorizontalValue = (rcElement.right - rcElement.left) * m_fElementPercentValue;
+
+   D2D1_POINT_2F ptStart = D2D1::Point2F(fHorizontalValue, rcElement.top);
+   D2D1_POINT_2F ptEnd = D2D1::Point2F(fHorizontalValue, rcElement.bottom);
+
+   m_pD2DContext->DrawLine(ptStart, ptEnd, m_pRedBrush.Get(), LBUTTONDOWN_LINE_WIDTH);
+}
+
+void CSpeedCurveCtrl::DrawElementArea()
+{
+   DrawElementAreaBackground();
+   DrawElementCurvePoint();
+   DrawElementTimeLine();
 }
 
 void CSpeedCurveCtrl::OnPaint()
@@ -470,6 +514,8 @@ void CSpeedCurveCtrl::OnPaint()
 
    DrawCurrentTimeLine();
 
+   DrawElementArea();
+
    hr = m_pD2DContext->EndDraw();
 
    DXGI_PRESENT_PARAMETERS parameters = { 0 };
@@ -481,20 +527,80 @@ void CSpeedCurveCtrl::OnPaint()
    hr = m_pSwapChain->Present1(1, 0, &parameters);
 }
 
+void CSpeedCurveCtrl::UpdateSeekPercentValue(int nXValue)
+{
+   m_fSeekPercentValue = CalculateTimePercent(nXValue);
+
+   // update element percent according to seek percent
+   /*float fSeekTime = CSpeedDataController::GetInstance().GetSeekTime(m_pD2DFactory, m_fSeekPercentValue);
+   float fCurrentDuration = CSpeedDataController::GetInstance().GetCurrentDuration();
+   m_fElementPercentValue = fSeekTime / fCurrentDuration;*/
+
+   m_fElementPercentValue = CSpeedDataController::GetInstance().CalculateElementPercent(m_pD2DFactory, m_fSeekPercentValue);
+}
+
+void CSpeedCurveCtrl::UpdateElementPercentValue(int nXValue)
+{
+   D2D1_RECT_F rcElement = RectToFloatRect(GetElementRect());
+
+   m_fElementPercentValue = INT_TO_FLOAT(nXValue) / (rcElement.right - rcElement.left);
+
+   clock_t clStart = clock();
+   
+   m_fSeekPercentValue = CSpeedDataController::GetInstance().CalculateSeekPercent(m_pD2DFactory, m_fElementPercentValue);
+
+   CString strPercent;
+   strPercent.Format(_T(" \r\n -----Seek percent is : %.5f ----- \r\n"), m_fSeekPercentValue);
+   OutputDebugString(strPercent);
+
+   double duration = (double)(clock() - clStart) / (double)(CLOCKS_PER_SEC);
+
+   CString strOutput;
+   strOutput.Format(_T(" \r\n ----- Calculate consume time : %lf ----- \r\n"), duration);
+   //OutputDebugString(strOutput);
+}
+
+void CSpeedCurveCtrl::SetElementPercentValue(float fValue)
+{
+   m_fElementPercentValue = fValue;
+
+   clock_t clStart = clock();
+
+   m_fSeekPercentValue = CSpeedDataController::GetInstance().CalculateSeekPercent(m_pD2DFactory, m_fElementPercentValue);
+
+   double duration = (double)(clock() - clStart) / (double)(CLOCKS_PER_SEC);
+
+   CString strOutput;
+   strOutput.Format(_T(" \r\n ----- Calculate consume time : %lf ----- \r\n"), duration);
+   //OutputDebugString(strOutput);
+}
+
 void CSpeedCurveCtrl::OnLButtonDown(UINT nFlags, CPoint point)
 {
    SetCapture();
 
-   m_bLButtonDown = TRUE;
-
-   m_pData->ResetDataSelectState();
-
    CRect rcClient;
    GetClientRect(rcClient);
 
-   if (!m_pData->SelectDataItem(point, GetSpeedCurveRect()))
+   int nPointValue = max(0, point.x);
+   nPointValue = min(nPointValue, rcClient.Width());
+
+   CRect rcElement = GetElementRect();
+   if (rcElement.PtInRect(point))
    {
-      m_fLButtonDownPercentValue = CalculateTimePercent(point.x);
+      m_bLButtonDownOnElementArea = TRUE;
+      UpdateElementPercentValue(nPointValue);
+   }
+   else
+   {
+      m_bLButtonDownOnCurveArea = TRUE;
+
+      CSpeedDataController::GetInstance().ResetDataSelectState();
+
+      if (!CSpeedDataController::GetInstance().SelectDataItem(point, GetSpeedCurveRect()))
+      {
+         UpdateSeekPercentValue(nPointValue);
+      }
    }
 
    Invalidate();
@@ -507,22 +613,46 @@ void CSpeedCurveCtrl::OnLButtonUp(UINT nFlags, CPoint point)
 {
    ReleaseCapture();
 
-   m_bLButtonDown = FALSE;
+   //CSpeedDataController::GetInstance().UpdateDynamicValue(m_pD2DFactory);
+
+   m_bLButtonDownOnCurveArea = FALSE;
+
+   m_bLButtonDownOnElementArea = FALSE;
 
    CWnd::OnLButtonUp(nFlags, point);
 }
 
 void CSpeedCurveCtrl::OnMouseMove(UINT nFlags, CPoint point)
 {
-   if (m_bLButtonDown)
+   CRect rcClient;
+   GetClientRect(rcClient);
+
+   int nPointXValue = max(0, point.x);
+   nPointXValue = min(nPointXValue, rcClient.Width());
+
+   if (m_bLButtonDownOnElementArea)
    {
-      if (!m_pData->AnyItemSelect())
+      UpdateElementPercentValue(nPointXValue);
+
+      Invalidate();
+      UpdateWindow();
+   }
+
+   if (m_bLButtonDownOnCurveArea)
+   {
+      if (!CSpeedDataController::GetInstance().AnyItemSelect())
       {
-         m_fLButtonDownPercentValue = CalculateTimePercent(point.x);
+         UpdateSeekPercentValue(nPointXValue);
       }
       else
       {
-         m_pData->MoveDataItem(point, GetSpeedCurveRect());
+         CRect rcCurve = GetSpeedCurveRect();
+
+         int nPointYValue = max(point.y, rcCurve.top);
+         nPointYValue = min(rcCurve.bottom, nPointYValue);
+
+         CSpeedDataController::GetInstance().MoveDataItem(m_pD2DFactory, CPoint(nPointXValue, nPointYValue), rcCurve);
+         CSpeedDataController::GetInstance().UpdateDynamicValue(m_pD2DFactory);
       }
 
       Invalidate();
@@ -669,6 +799,11 @@ void CSpeedCurveCtrl::CreateDeviceIndependentResources()
       m_pD2DContext->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Blue), &m_pBlueBrush);
    }
 
+   if (m_pGrayBrush == nullptr)
+   {
+      m_pD2DContext->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Gray), &m_pGrayBrush);
+   }
+
    if (m_pDurationAreaSeparatorBrush == nullptr)
    {
       m_pD2DContext->CreateSolidColorBrush(D2D1::ColorF(59.0f / 255.0f, 59.0f / 255.0f, 59.0f / 255.0f), &m_pDurationAreaSeparatorBrush);
@@ -812,6 +947,14 @@ float CSpeedCurveCtrl::CalculateTimePercent(int nPosition)
    return fPercent;
 }
 
+D2D1_RECT_F CSpeedCurveCtrl::RectToFloatRect(CRect rcRect)
+{
+   D2D1_RECT_F rcFloat = D2D1::RectF(INT_TO_FLOAT(rcRect.left),
+      INT_TO_FLOAT(rcRect.top), INT_TO_FLOAT(rcRect.right), INT_TO_FLOAT(rcRect.bottom));
+
+   return rcFloat;
+}
+
 CRect CSpeedCurveCtrl::GetSpeedCurveRect()
 {
    CRect rcClient;
@@ -821,11 +964,22 @@ CRect CSpeedCurveCtrl::GetSpeedCurveRect()
    return rcClient;
 }
 
+CRect CSpeedCurveCtrl::GetElementRect()
+{
+   CRect rcClient;
+   GetClientRect(rcClient);
+   rcClient.top += DURATION_AREA_HEIGHT;
+
+   int nSectionHeight = rcClient.Height() / 10;
+   
+   rcClient.top = rcClient.bottom - nSectionHeight;
+
+   return rcClient;
+}
+
 void CSpeedCurveCtrl::ResetSpeedData()
 {
-   ASSERT(m_pData != nullptr);
-
-   m_pData->Init(m_fDuration);
+   CSpeedDataController::GetInstance().Init(m_fDuration);
 
    Invalidate();
    UpdateWindow();
@@ -833,4 +987,19 @@ void CSpeedCurveCtrl::ResetSpeedData()
 
 void CSpeedCurveCtrl::AddSpeedDataItem()
 {
+}
+
+void CSpeedCurveCtrl::SetPlayTime(double dTime)
+{
+   float fPlayTime = static_cast<float>(dTime);
+
+   int nRound = static_cast<int>(fPlayTime / m_fDuration);
+
+   float fCurrentPlayTime = fPlayTime - nRound * m_fDuration;
+   float fCurrentPlayPercent = fCurrentPlayTime / m_fDuration;
+
+   SetElementPercentValue(fCurrentPlayPercent);
+
+   Invalidate();
+   UpdateWindow();
 }
